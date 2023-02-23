@@ -1,5 +1,9 @@
 # Utilizando o Kafka Connect para replicação de dados com PostgreSQL e MySQL
 
+- Marcelo
+- Gian
+- Diogo
+
 Este Docker Compose foi criado para configurar e executar um ambiente de teste com o PostgreSQL, MySQL e Kafka Connect. Os containers do PostgreSQL e MySQL serão iniciados com uma tabela chamada "estudantes", com duas colunas: "id" (inteiro) e "nome" (varchar).
 
 Para executar o Docker Compose, siga as etapas abaixo:
