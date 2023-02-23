@@ -21,31 +21,34 @@ run.sh
 ```
 - O arquivo ``start.sh`` cria as imagens, e configura o kafka, por isso só precisa ser rodado 1 vez
 
+
+
+
 1. Aguarde até que todos os containers sejam iniciados e configurados. Isso pode levar alguns minutos.
 
 1. Depois que os containers estiverem prontos, você pode testar a conexão com os bancos PostgreSQL usando o cliente de banco de dados de sua preferência.
 
 - Para se conectar ao PostgreSQL - source, use as seguintes informações de conexão:
-``
+```
         Host: postgres-source
         Porta: 5432
         Usuário: postgres
         Senha: postgres
         Banco de dados: dbestudantes
-``
+```
 Ou
 ```
 docker exec -it postgres-source psql -U postgres dbestudantes
 ```
 
 - Para se conectar ao PostgreSQL - sink, use as seguintes informações de conexão:
-`` 
+``` 
         Host: postgres-sink
         Porta: 5432
         Usuário: postgres
         Senha: postgres
         Banco de dados: dbestudantes
-``
+```
 Ou
 ```
 docker exec -it postgres-sink psql -U postgres dbestudantes
