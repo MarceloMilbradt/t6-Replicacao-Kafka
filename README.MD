@@ -1,5 +1,9 @@
 # Utilizando o Kafka Connect para replicação de dados com PostgreSQL
 
+- Marcelo 
+- Gian
+- Diogo
+
 Este Docker Compose foi criado para configurar e executar um ambiente de teste com o PostgreSQL e Kafka Connect. Os containers do postgres-source e postgres-sink e  serão iniciados com uma tabela chamada "estudantes", com duas colunas: "id" (inteiro) e "nome" (varchar).
 
 Os dados inseridos no banco source, serão replicados no banco sink
