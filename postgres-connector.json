@@ -1,0 +1,31 @@
+{
+    
+  "name": "postgres-estudantes-source",
+  "config": {
+    "connector.class": "JdbcSourceConnector",
+    "task.max": "1",
+    "key.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "key.converter.schema.registry.url": "http://schemaregistry:8081",
+    "value.converter.schema.registry.url": "http://schemaregistry:8081",
+    "value.converter.schemas.enable": "true",
+    "connection.user": "postgres",
+    "connection.password": "postgres",
+    "fields.whitelist": "id,nome",
+    "auto.create": "true",
+    "connection.url": "jdbc:postgresql://postgres-source:5432/dbestudantes",
+    "database.url": "jdbc:postgresql://postgres-source:5432/dbestudantes",
+    "database.server.name": "postgres-source",
+    "database.hostname": "postgres-source",
+    "database.dbname": "dbestudantes",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "mode": "incrementing",
+    "query" : "select * from estudantes",
+    "incrementing.column.name": "id",
+    "table.type": "estudantes",
+    "poll.interval.ms": "5000",
+    "batch.max.rows": "1",
+    "topic.prefix": "estudantes"    
+  }
+}

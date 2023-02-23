@@ -1,31 +1,42 @@
 version: '3'
 
 services:
-  postgres:
-    image: postgres:latest
-    container_name: postgres-container
+  postgres-source:
+    build:
+      dockerfile: Dockerfile.postgres
+    container_name: postgres-source
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dbestudantes
       POSTGRES_INITDB_ARGS: "-U postgres -E UTF8"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-source-data:/var/lib/postgresql/data
       - ./postgres-init:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
-
-  mysql:
-    image: mysql:latest
-    container_name: mysql-container
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: mydb
-    volumes:
-      - mysql-data:/var/lib/mysql
-      - ./mysql-init:/docker-entrypoint-initdb.d/
-    ports:
-      - "3306:3306"
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+  postgres-sink:
+      build:
+        dockerfile: Dockerfile.postgres
+      container_name: postgres-sink
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: dbestudantes
+        POSTGRES_INITDB_ARGS: "-U postgres -E UTF8"
+      volumes:
+        - postgres-sink-data:/var/lib/postgresql/data
+        - ./postgres-init:/docker-entrypoint-initdb.d/
+      ports:
+        - "5433:5432"
+      command:
+        - "postgres"
+        - "-c"
+        - "wal_level=logical"
   zookeeper:
     image: confluentinc/cp-zookeeper:6.2.1
     container_name: zookeeper
@@ -34,8 +45,6 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
-    networks:
-      - kafka-network
 
   kafka:
     image: confluentinc/cp-kafka:6.2.1
@@ -43,23 +52,38 @@ services:
     depends_on:
       - zookeeper
     environment:
+      KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     ports:
       - "9092:9092"
-    networks:
-      - kafka-network
+
+  schemaregistry:
+    image: confluentinc/cp-schema-registry:5.1.2
+    container_name: schemaregistry
+    depends_on:
+      - zookeeper
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "zookeeper:2181"
+      SCHEMA_REGISTRY_HOST_NAME: schemaregistry
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+    ports:
+      - 8081:8081
 
   kafka-connect:
-    image: confluentinc/cp-kafka-connect:6.2.1
+    build:
+      dockerfile: Dockerfile
     container_name: kafka-connect
     depends_on:
       - kafka
-      - postgres
-      - mysql
+      - zookeeper
+      - postgres-source
+      - postgres-sink
+      - schemaregistry
     environment:
       CONNECT_BOOTSTRAP_SERVERS: 'kafka:9092'
       CONNECT_REST_PORT: 8083
@@ -70,25 +94,22 @@ services:
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_STATUS_STORAGE_TOPIC: kafka-connect-status
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
-      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: 'false'
+      CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'schemaregistry:8081'
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'schemaregistry:8081'
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: 'true'
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
       CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
       CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
       CONNECT_LOG4J_ROOT_LOGLEVEL: "WARN"
-      CONNECT_REST_ADVERTISED_HOST_NAME: localhost
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka
     ports:
       - "8083:8083"
-    networks:
-      - kafka-network
     volumes:
-      - ./connectors:/connectors
-
-networks:
-  kafka-network:
-    driver: bridge
+      - ./connectors:/etc/kafka/connectors
+      
 
 volumes:
-  postgres-data:
-  mysql-data:
+  postgres-sink-data:
+  postgres-source-data:

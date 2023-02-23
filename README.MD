@@ -1,10 +1,8 @@
-# Utilizando o Kafka Connect para replicação de dados com PostgreSQL e MySQL
+# Utilizando o Kafka Connect para replicação de dados com PostgreSQL
 
-- Marcelo
-- Gian
-- Diogo
+Este Docker Compose foi criado para configurar e executar um ambiente de teste com o PostgreSQL e Kafka Connect. Os containers do postgres-source e postgres-sink e  serão iniciados com uma tabela chamada "estudantes", com duas colunas: "id" (inteiro) e "nome" (varchar).
 
-Este Docker Compose foi criado para configurar e executar um ambiente de teste com o PostgreSQL, MySQL e Kafka Connect. Os containers do PostgreSQL e MySQL serão iniciados com uma tabela chamada "estudantes", com duas colunas: "id" (inteiro) e "nome" (varchar).
+Os dados inseridos no banco source, serão replicados no banco sink
 
 Para executar o Docker Compose, siga as etapas abaixo:
 ## Instalação
@@ -13,43 +11,48 @@ Para executar o Docker Compose, siga as etapas abaixo:
 
 1. Abra o terminal ou prompt de comando e navegue até o diretório onde o arquivo "docker-compose.yml" está salvo.
 
-1. Execute o seguinte comando para iniciar os containers:
+1. Execute o seguinte comando para iniciar os containers a primeira vez:
 ```
-docker-compose up
+start.sh
 ```
+- Caso já tenha rodado o start:
+```
+run.sh
+```
+- O arquivo ``start.sh`` cria as imagens, e configura o kafka, por isso só precisa ser rodado 1 vez
 
 1. Aguarde até que todos os containers sejam iniciados e configurados. Isso pode levar alguns minutos.
 
-1. Depois que os containers estiverem prontos, você pode testar a conexão com o PostgreSQL e o MySQL usando o cliente de banco de dados de sua preferência.
+1. Depois que os containers estiverem prontos, você pode testar a conexão com os bancos PostgreSQL usando o cliente de banco de dados de sua preferência.
 
-- Para se conectar ao PostgreSQL, use as seguintes informações de conexão:
+- Para se conectar ao PostgreSQL - source, use as seguintes informações de conexão:
 ``
-        Host: localhost
+        Host: postgres-source
         Porta: 5432
-        Usuário: myuser
-        Senha: mypassword
-        Banco de dados: mydb
+        Usuário: postgres
+        Senha: postgres
+        Banco de dados: dbestudantes
 ``
 Ou
 ```
-docker exec -it postgres-container psql -U myuser mydb
+docker exec -it postgres-source psql -U postgres dbestudantes
 ```
 
-- Para se conectar ao MySQL, use as seguintes informações de conexão:
+- Para se conectar ao PostgreSQL - sink, use as seguintes informações de conexão:
 `` 
-        Host: localhost
-        Porta: 3306
-        Usuário: root
-        Senha: rootpassword
-        Banco de dados: mysql
+        Host: postgres-sink
+        Porta: 5432
+        Usuário: postgres
+        Senha: postgres
+        Banco de dados: dbestudantes
 ``
 Ou
 ```
-docker exec -it mysql-container mysql -u root -p
+docker exec -it postgres-sink psql -U postgres dbestudantes
 ```
 ## Testando
 
-1. Conecte-se ao banco de dados PostgreSQL
+1. Conecte-se ao banco de dados PostgreSQL source
 
 1. Crie uma nova linha na tabela estudantes executando o seguinte comando SQL:
 ```
@@ -58,10 +61,10 @@ INSERT INTO estudantes (id, nome) VALUES (2, 'Marcelo');
 INSERT INTO estudantes (id, nome) VALUES (3, 'Diogo');
 ```
 
-1. Conecte-se ao banco de dados MySQL 
+1. Conecte-se ao banco de dados PostgreSQL sink 
 
-1. Consulte a tabela estudantes para verificar se a nova linha foi replicada do banco de dados PostgreSQL para o banco de dados MySQL. Execute o seguinte comando:
-
+1. Consulte a tabela estudantes para verificar se a nova linha foi replicada do banco de dados source para o banco de dados sink. Execute o seguinte comando:
+- Pode levar alguns segundos para o dado ser replicado, caso não seja pare os containers com o arquivo ``stop.sh`` e execute o ``run.sh`` novamente.
 ```
 SELECT * FROM estudantes;
 ```
