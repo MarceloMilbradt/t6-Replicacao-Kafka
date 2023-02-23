@@ -4,10 +4,6 @@
 - Gian
 - Diogo
 
-Este Docker Compose foi criado para configurar e executar um ambiente de teste com o PostgreSQL e Kafka Connect. Os containers do postgres-source e postgres-sink e  serão iniciados com uma tabela chamada "estudantes", com duas colunas: "id" (inteiro) e "nome" (varchar).
-
-Os dados inseridos no banco source, serão replicados no banco sink
-
 # Tecnologias e serviços
 
 1. postgres-source: Este serviço é um banco de dados PostgreSQL que serve como a fonte de dados para os dados que serão enviados para o Kafka. Ele é criado usando um Dockerfile personalizado que estende a imagem padrão do PostgreSQL. Ele usa uma série de variáveis ​​de ambiente para definir o nome de usuário, senha, nome do banco de dados e argumentos de inicialização. Ele também mapeia dois volumes para persistir os dados e inicializa o banco de dados com scripts SQL armazenados em uma pasta local.
@@ -21,6 +17,11 @@ Os dados inseridos no banco source, serão replicados no banco sink
 1. schemaregistry: Este serviço é um esquema do Confluent Schema Registry, que é usado para armazenar e gerenciar esquemas para mensagens do Kafka. Ele é criado a partir de uma imagem oficial do Confluent e depende do serviço zookeeper. Ele expõe a porta 8081 e usa variáveis ​​de ambiente para configurar sua conexão com o serviço zookeeper e seu nome de host.
 
 1. kafka-connect: Este serviço é o Kafka Connect, que é usado para enviar dados do banco de dados de origem para o tópico do Kafka e de lá para o banco de dados de destino. Ele é criado a partir de um Dockerfile personalizado que inclui uma série de plug-ins necessários. Ele depende dos serviços Kafka, Zookeeper, postgres-source, postgres-sink e schemaregistry e expõe a porta 8083. Ele usa várias variáveis ​​de ambiente para configurar a conexão com o Kafka, o grupo de conexão, o tópico de armazenamento de configuração e os conversores de chave e valor, entre outras coisas. Ele também mapeia uma pasta local que contém arquivos de configuração para conectores.
+
+Este sistema é um Docker Compose que foi criado para configurar e executar um ambiente de teste com o PostgreSQL e Kafka Connect. Os containers do postgres-source e postgres-sink e  serão iniciados com uma tabela chamada "estudantes", com duas colunas: "id" (inteiro) e "nome" (varchar).
+
+Os dados inseridos no banco source, serão replicados no banco sink
+
 
 ## Instalação
 
