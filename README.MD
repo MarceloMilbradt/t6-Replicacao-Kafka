@@ -92,4 +92,4 @@ INSERT INTO estudantes (id, nome) VALUES (3, 'Diogo');
 SELECT * FROM estudantes;
 ```
 
-![Evidencia](https://imgur.com/qdfTc0p)
+![Evidencia](https://i.imgur.com/qdfTc0p.jpg)
